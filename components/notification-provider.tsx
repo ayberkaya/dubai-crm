@@ -21,6 +21,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       await checkAndCreateNotifications()
       const count = await getUnreadNotificationCount()
       setUnreadCount(count)
+      
+      // Dispatch custom event to notify other components
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notifications-refreshed"))
+      }
     } catch (error: any) {
       // Ignore Next.js redirect errors
       if (error?.digest?.startsWith("NEXT_REDIRECT") || error?.message?.includes("NEXT_REDIRECT")) {

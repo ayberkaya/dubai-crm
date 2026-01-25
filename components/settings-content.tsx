@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { usePathname } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -15,6 +16,7 @@ import { Bell, Moon, Sun, Monitor } from "lucide-react"
 
 export function SettingsContent() {
   const { theme, setTheme } = useTheme()
+  const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
   const [autoScheduleNext, setAutoScheduleNext] = useState(true)
   const [notifications, setNotifications] = useState<any[]>([])
@@ -25,7 +27,46 @@ export function SettingsContent() {
     loadNotifications()
   }, [])
 
-  const loadNotifications = async () => {
+  // Reload notifications when pathname changes (after router.refresh())
+  useEffect(() => {
+    if (mounted && pathname === "/settings") {
+      loadNotifications()
+    }
+  }, [pathname, mounted, loadNotifications])
+
+  // Reload notifications when window gains focus (user returns to tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (mounted && pathname === "/settings") {
+        loadNotifications()
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (mounted && pathname === "/settings" && !document.hidden) {
+        loadNotifications()
+      }
+    }
+
+    // Listen for custom notification refresh event
+    const handleNotificationRefresh = () => {
+      if (mounted && pathname === "/settings") {
+        loadNotifications()
+      }
+    }
+
+    window.addEventListener("focus", handleFocus)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    window.addEventListener("notifications-refreshed", handleNotificationRefresh)
+
+    return () => {
+      window.removeEventListener("focus", handleFocus)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      window.removeEventListener("notifications-refreshed", handleNotificationRefresh)
+    }
+  }, [mounted, pathname, loadNotifications])
+
+  const loadNotifications = useCallback(async () => {
     setLoading(true)
     try {
       const data = await getUnreadNotifications()
@@ -35,7 +76,7 @@ export function SettingsContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   const handleMarkAllRead = async () => {
     try {
