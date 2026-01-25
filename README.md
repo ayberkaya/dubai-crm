@@ -190,7 +190,7 @@ The dashboard shows three sections:
 ## Deploying to Railway
 
 1. Add a **PostgreSQL** plugin to your Railway project.
-2. In your **web service** → **Variables**, add `DATABASE_URL`. Use a reference to the Postgres service’s `DATABASE_URL` (or paste the connection string). The build runs `prisma db push`, so tables are created automatically.
+2. In your **web service** → **Variables**, add `DATABASE_URL`. Use a reference to the Postgres service’s `DATABASE_URL` (or paste the connection string). The schema is automatically synced at startup via `prisma db push`.
 3. Deploy. Generate a domain under **Settings** → **Networking** → **Public Networking** if needed.
 4. **Create the initial user**: After deployment, run the user creation script via Railway's CLI:
    ```bash
