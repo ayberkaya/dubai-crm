@@ -15,7 +15,10 @@ A premium, single-user Lead CRM for Dubai real estate follow-ups. Built for spee
 - **Lead Management**: Capture and manage leads with comprehensive information
 - **Follow-up Logic**: Automatic overdue detection (48h rule) and follow-up scheduling
 - **Dashboard**: View overdue, due today, and upcoming leads
-- **Search & Filters**: Fast search across all lead fields with advanced filtering
+- **Search & Filters**: Fast search across all lead fields with collapsible advanced filtering
+- **Duplicate Detection**: Real-time warnings when creating leads with existing phone/email
+- **WhatsApp Integration**: One-click WhatsApp links from phone numbers
+- **View Modes**: Grid and list views with multiple sorting options
 - **Timeline & Notes**: Activity timeline with notes for each lead
 - **Notifications**: In-app notifications with browser notification support
 - **Dark Mode**: System-aware theme switching
@@ -76,7 +79,8 @@ pnpm start
 1. Click "New Lead" in the navigation
 2. Fill in at least one of: name, phone, or email (required)
 3. Add property requirements, budget, areas, etc.
-4. Click "Create Lead"
+4. **Duplicate Detection**: If you enter a phone or email that already exists, you'll see a warning with links to existing leads
+5. Click "Create Lead"
 
 The system will automatically set `next_follow_up_at` to 2 days from now if not specified.
 
@@ -96,8 +100,11 @@ The dashboard shows three sections:
 ### Search & Filters
 
 - Use the search bar to find leads by name, phone, email, areas, or notes
+- Click the "Filters" button to show/hide filter options
 - Apply filters for status, type, source, priority, language, and budget range
-- Results are sorted by urgency (overdue first, then by due date)
+- Active filter count is shown on the filter button
+- Multiple sorting options: urgency, name, date, follow-up, budget, priority
+- View leads in grid or list mode
 
 ### Notifications
 
@@ -105,6 +112,12 @@ The dashboard shows three sections:
 - Browser notifications are requested on first load (if permission granted)
 - Notifications are checked every 60 seconds while the app is open
 - Notifications are deduplicated by lead + type + day
+
+### Communication
+
+- **WhatsApp Links**: Click the WhatsApp button next to any phone number to open a chat
+- WhatsApp links are available on lead detail pages, cards, and list items
+- Links automatically format phone numbers with UAE country code (+971)
 
 ### Settings
 
@@ -159,8 +172,10 @@ The dashboard shows three sections:
 │   └── ...
 ├── lib/
 │   ├── prisma.ts         # Prisma client
-│   ├── utils.ts          # Utility functions
-│   └── lead-utils.ts     # Lead urgency calculations
+│   ├── utils.ts          # Utility functions (formatting, WhatsApp links)
+│   ├── lead-utils.ts     # Lead urgency calculations
+│   ├── types.ts          # TypeScript type definitions
+│   └── dubai-areas.ts    # Dubai area list
 └── prisma/
     ├── schema.prisma     # Database schema
     └── seed.ts           # Seed script
