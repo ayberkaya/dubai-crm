@@ -15,11 +15,13 @@ import { Bell, Moon, Sun, Monitor } from "lucide-react"
 
 export function SettingsContent() {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [autoScheduleNext, setAutoScheduleNext] = useState(true)
   const [notifications, setNotifications] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     loadNotifications()
   }, [])
 
@@ -61,39 +63,67 @@ export function SettingsContent() {
             <CardDescription>Choose your preferred theme</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="theme-light" className="flex items-center gap-2 cursor-pointer">
-                <Sun className="h-4 w-4" />
-                Light
-              </Label>
-              <Switch
-                id="theme-light"
-                checked={theme === "light"}
-                onCheckedChange={() => setTheme("light")}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="theme-dark" className="flex items-center gap-2 cursor-pointer">
-                <Moon className="h-4 w-4" />
-                Dark
-              </Label>
-              <Switch
-                id="theme-dark"
-                checked={theme === "dark"}
-                onCheckedChange={() => setTheme("dark")}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="theme-system" className="flex items-center gap-2 cursor-pointer">
-                <Monitor className="h-4 w-4" />
-                System
-              </Label>
-              <Switch
-                id="theme-system"
-                checked={theme === "system"}
-                onCheckedChange={() => setTheme("system")}
-              />
-            </div>
+            {!mounted ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="theme-light" className="flex items-center gap-2 cursor-pointer">
+                    <Sun className="h-4 w-4" />
+                    Light
+                  </Label>
+                  <Switch id="theme-light" checked={false} disabled />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="theme-dark" className="flex items-center gap-2 cursor-pointer">
+                    <Moon className="h-4 w-4" />
+                    Dark
+                  </Label>
+                  <Switch id="theme-dark" checked={false} disabled />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="theme-system" className="flex items-center gap-2 cursor-pointer">
+                    <Monitor className="h-4 w-4" />
+                    System
+                  </Label>
+                  <Switch id="theme-system" checked={false} disabled />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="theme-light" className="flex items-center gap-2 cursor-pointer">
+                    <Sun className="h-4 w-4" />
+                    Light
+                  </Label>
+                  <Switch
+                    id="theme-light"
+                    checked={theme === "light"}
+                    onCheckedChange={() => setTheme("light")}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="theme-dark" className="flex items-center gap-2 cursor-pointer">
+                    <Moon className="h-4 w-4" />
+                    Dark
+                  </Label>
+                  <Switch
+                    id="theme-dark"
+                    checked={theme === "dark"}
+                    onCheckedChange={() => setTheme("dark")}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="theme-system" className="flex items-center gap-2 cursor-pointer">
+                    <Monitor className="h-4 w-4" />
+                    System
+                  </Label>
+                  <Switch
+                    id="theme-system"
+                    checked={theme === "system"}
+                    onCheckedChange={() => setTheme("system")}
+                  />
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
