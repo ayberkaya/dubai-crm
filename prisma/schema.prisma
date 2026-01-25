@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id                String   @id @default(cuid())
+  name              String?
+  phone             String?
+  email             String?
+  preferredLanguage String?  // EN, TR, RU, AR
+  source            String?  // WhatsApp, Instagram, PropertyFinder, Referral, WalkIn, Other
+  sourceCustom      String?
+  leadType          String?  // Rental, OffPlan, SecondarySale
+  budgetMin         Int?
+  budgetMax         Int?
+  areas             String   @default("[]") // JSON array of strings
+  beds              Int?
+  baths             Int?
+  furnishing        String?  // Furnished, Unfurnished
+  moveInDate        DateTime?
+  notes             String?
+  status            String   @default("New") // New, Contacted, Qualified, Viewing, Negotiation, Won, Lost
+  priority          String   @default("Med") // Low, Med, High
+  nextFollowUpAt    DateTime?
+  lastContactedAt   DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  leadNotes         LeadNote[]
+  notifications     Notification[]
+
+  @@index([status])
+  @@index([nextFollowUpAt])
+  @@index([lastContactedAt])
+  @@index([createdAt])
+}
+
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id               String   @id @default(cuid())
+  leadId           String
+  type             String   // OverdueNewContact, OverdueFollowUp, DueToday
+  read             Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  lead             Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, type])
+  @@index([read])
+  @@index([createdAt])
+}
