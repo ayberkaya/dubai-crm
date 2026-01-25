@@ -12,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search, X, Grid3x3, List } from "lucide-react"
+import { Search, X, Grid3x3, List, Plus } from "lucide-react"
+import Link from "next/link"
 import type { LeadStatus, LeadType, LeadSource, Priority, Language } from "@/lib/types"
 import { sortLeadsByUrgency, type LeadWithRelations } from "@/lib/lead-utils"
 import { LeadListItem } from "@/components/lead-list-item"
@@ -172,6 +173,12 @@ export function LeadsContent() {
               <List className="h-4 w-4" />
             </Button>
           </div>
+          <Link href="/leads/new">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              New Lead
+            </Button>
+          </Link>
           <Button onClick={loadLeads} variant="outline" size="sm">
             Refresh
           </Button>
