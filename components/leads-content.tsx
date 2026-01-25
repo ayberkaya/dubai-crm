@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search, X, Grid3x3, List, Plus } from "lucide-react"
+import { Search, X, Grid3x3, List, Plus, Filter } from "lucide-react"
 import Link from "next/link"
 import type { LeadStatus, LeadType, LeadSource, Priority, Language } from "@/lib/types"
 import { sortLeadsByUrgency, type LeadWithRelations } from "@/lib/lead-utils"
@@ -36,6 +36,7 @@ export function LeadsContent() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState<SortOption>("most_urgent")
   const [search, setSearch] = useState("")
+  const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState<{
     status?: LeadStatus
     leadType?: LeadType
@@ -179,9 +180,6 @@ export function LeadsContent() {
               New Lead
             </Button>
           </Link>
-          <Button onClick={loadLeads} variant="outline" size="sm">
-            Refresh
-          </Button>
         </div>
       </div>
 
@@ -197,6 +195,20 @@ export function LeadsContent() {
               className="pl-9"
             />
           </div>
+          <Button
+            onClick={() => setShowFilters(!showFilters)}
+            variant={showFilters ? "default" : "outline"}
+            size="sm"
+            className="gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Filters
+            {hasActiveFilters && (
+              <span className="ml-1 px-1.5 py-0.5 text-xs bg-background/80 rounded-full">
+                {Object.keys(filters).length + (search ? 1 : 0)}
+              </span>
+            )}
+          </Button>
           {hasActiveFilters && (
             <Button onClick={clearFilters} variant="ghost" size="icon">
               <X className="h-4 w-4" />
@@ -204,7 +216,8 @@ export function LeadsContent() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+        {showFilters && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
           <Select
             value={filters.status || "all"}
             onValueChange={(value) =>
@@ -298,7 +311,8 @@ export function LeadsContent() {
               setFilters({ ...filters, budgetMax: e.target.value || undefined })
             }
           />
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Results */}
