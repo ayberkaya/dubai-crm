@@ -1,12 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { markLeadAsContacted, deleteLead } from "@/app/actions/leads"
+import { updateLead, deleteLead } from "@/app/actions/leads"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
-import { Phone, Trash2 } from "lucide-react"
+import { Trash2 } from "lucide-react"
 import type { LeadWithRelations } from "@/lib/lead-utils"
+import type { LeadStatus } from "@/lib/types"
 
 interface LeadActionsProps {
   lead: LeadWithRelations
@@ -16,20 +24,22 @@ export function LeadActions({ lead }: LeadActionsProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<LeadStatus>(lead.status as LeadStatus)
 
-  const handleMarkContacted = async () => {
+  const handleStatusChange = async (newStatus: string) => {
     setLoading(true)
     try {
-      await markLeadAsContacted(lead.id, true) // Auto-schedule next follow-up
+      await updateLead(lead.id, { status: newStatus as LeadStatus })
+      setStatus(newStatus as LeadStatus)
       toast({
-        title: "Lead marked as contacted",
-        description: "Next follow-up scheduled in 2 days",
+        title: "Status updated",
+        description: `Lead status changed to ${newStatus}`,
       })
       router.refresh()
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to mark lead as contacted",
+        description: "Failed to update status",
         variant: "destructive",
       })
     } finally {
@@ -60,15 +70,22 @@ export function LeadActions({ lead }: LeadActionsProps) {
 
   return (
     <div className="flex gap-2">
-      <Button
-        onClick={handleMarkContacted}
+      <Select
+        value={status}
+        onValueChange={handleStatusChange}
         disabled={loading}
-        variant="default"
-        className="gap-2"
       >
-        <Phone className="h-4 w-4" />
-        Mark as Contacted
-      </Button>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Select status" />
+        </SelectTrigger>
+        <SelectContent>
+          {(["New", "Contacted", "Qualified", "Follow", "Closed"] as LeadStatus[]).map((s) => (
+            <SelectItem key={s} value={s}>
+              {s}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <Button
         onClick={handleDelete}
         disabled={loading}

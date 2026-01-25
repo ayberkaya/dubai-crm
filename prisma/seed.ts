@@ -58,7 +58,7 @@ async function main() {
       beds: 4,
       baths: 4,
       furnishing: "Furnished",
-      status: "Viewing",
+      status: "Follow",
       priority: "Med",
       nextFollowUpAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // Due in 3 days
       lastContactedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
@@ -96,7 +96,7 @@ async function main() {
       beds: 3,
       baths: 2,
       furnishing: "Unfurnished",
-      status: "Negotiation",
+      status: "Follow",
       priority: "High",
       nextFollowUpAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Due in 7 days
       lastContactedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),

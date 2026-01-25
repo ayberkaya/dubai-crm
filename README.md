@@ -127,7 +127,7 @@ The dashboard shows three sections:
 
 ### Enums
 
-- **Status**: New, Contacted, Qualified, Viewing, Negotiation, Won, Lost
+- **Status**: New, Contacted, Qualified, Follow, Closed
 - **Type**: Rental, OffPlan, SecondarySale
 - **Source**: WhatsApp, Instagram, PropertyFinder, Referral, WalkIn, Other
 - **Language**: EN, TR, RU, AR

@@ -15,6 +15,8 @@ export async function createNote(leadId: string, content: string) {
     },
   })
 
+  revalidatePath("/")
+  revalidatePath("/leads")
   revalidatePath(`/leads/${leadId}`)
   return note
 }

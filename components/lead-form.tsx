@@ -24,6 +24,7 @@ import type {
   Furnishing,
 } from "@/lib/types"
 import type { LeadWithRelations } from "@/lib/lead-utils"
+import { MultiSelectAreas } from "@/components/multi-select-areas"
 
 interface LeadFormProps {
   lead?: LeadWithRelations
@@ -33,7 +34,7 @@ export function LeadForm({ lead }: LeadFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
-  const [areas, setAreas] = useState<string>("")
+  const [selectedAreas, setSelectedAreas] = useState<string[]>([])
   const [formData, setFormData] = useState<Partial<CreateLeadInput> & { moveInDate?: string; nextFollowUpAt?: string }>({
     name: lead?.name || "",
     phone: lead?.phone || "",
@@ -63,7 +64,7 @@ export function LeadForm({ lead }: LeadFormProps) {
   useEffect(() => {
     if (lead?.areas) {
       const areasArray = Array.isArray(lead.areas) ? lead.areas : JSON.parse(lead.areas || "[]")
-      setAreas(areasArray.join(", "))
+      setSelectedAreas(areasArray)
     }
   }, [lead])
 
@@ -72,14 +73,9 @@ export function LeadForm({ lead }: LeadFormProps) {
     setLoading(true)
 
     try {
-      const areasArray = areas
-        .split(",")
-        .map((a) => a.trim())
-        .filter(Boolean)
-
       const data: CreateLeadInput = {
         ...formData,
-        areas: areasArray,
+        areas: selectedAreas,
         budgetMin: formData.budgetMin ? Number(formData.budgetMin) : undefined,
         budgetMax: formData.budgetMax ? Number(formData.budgetMax) : undefined,
         beds: formData.beds ? Number(formData.beds) : undefined,
@@ -246,7 +242,7 @@ export function LeadForm({ lead }: LeadFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {(["New", "Contacted", "Qualified", "Viewing", "Negotiation", "Won", "Lost"] as LeadStatus[]).map((status) => (
+              {(["New", "Contacted", "Qualified", "Follow", "Closed"] as LeadStatus[]).map((status) => (
                 <SelectItem key={status} value={status}>
                   {status}
                 </SelectItem>
@@ -307,45 +303,61 @@ export function LeadForm({ lead }: LeadFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="areas">Areas (comma-separated)</Label>
-          <Input
-            id="areas"
-            value={areas}
-            onChange={(e) => setAreas(e.target.value)}
-            placeholder="Dubai Marina, Downtown"
+          <Label htmlFor="areas">Areas</Label>
+          <MultiSelectAreas
+            value={selectedAreas}
+            onChange={setSelectedAreas}
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="beds">Beds</Label>
-          <Input
-            id="beds"
-            type="number"
-            min="0"
-            value={formData.beds || ""}
-            onChange={(e) =>
+          <Select
+            value={formData.beds?.toString() || "none"}
+            onValueChange={(value) =>
               setFormData({
                 ...formData,
-                beds: e.target.value ? Number(e.target.value) : undefined,
+                beds: value === "none" ? undefined : Number(value),
               })
             }
-          />
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select beds" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                <SelectItem key={num} value={num.toString()}>
+                  {num}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="baths">Baths</Label>
-          <Input
-            id="baths"
-            type="number"
-            min="0"
-            value={formData.baths || ""}
-            onChange={(e) =>
+          <Select
+            value={formData.baths?.toString() || "none"}
+            onValueChange={(value) =>
               setFormData({
                 ...formData,
-                baths: e.target.value ? Number(e.target.value) : undefined,
+                baths: value === "none" ? undefined : Number(value),
               })
             }
-          />
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select baths" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                <SelectItem key={num} value={num.toString()}>
+                  {num}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

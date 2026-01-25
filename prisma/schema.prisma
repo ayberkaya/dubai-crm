@@ -27,7 +27,7 @@ model Lead {
   furnishing        String?  // Furnished, Unfurnished
   moveInDate        DateTime?
   notes             String?
-  status            String   @default("New") // New, Contacted, Qualified, Viewing, Negotiation, Won, Lost
+  status            String   @default("New") // New, Contacted, Qualified, Follow, Closed
   priority          String   @default("Med") // Low, Med, High
   nextFollowUpAt    DateTime?
   lastContactedAt   DateTime?

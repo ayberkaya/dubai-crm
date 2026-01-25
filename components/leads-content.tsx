@@ -99,7 +99,7 @@ export function LeadsContent() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              {(["New", "Contacted", "Qualified", "Viewing", "Negotiation", "Won", "Lost"] as LeadStatus[]).map((status) => (
+              {(["New", "Contacted", "Qualified", "Follow", "Closed"] as LeadStatus[]).map((status) => (
                 <SelectItem key={status} value={status}>
                   {status}
                 </SelectItem>

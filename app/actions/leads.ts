@@ -31,6 +31,7 @@ export interface CreateLeadInput {
   status?: LeadStatus
   priority?: Priority
   nextFollowUpAt?: Date | string
+  lastContactedAt?: Date | string
 }
 
 export async function createLead(input: CreateLeadInput) {
@@ -97,9 +98,17 @@ export async function updateLead(id: string, input: Partial<CreateLeadInput>) {
   if (input.status !== undefined) updateData.status = input.status
   if (input.priority !== undefined) updateData.priority = input.priority
   if (input.nextFollowUpAt !== undefined)
-    updateData.nextFollowUpAt = input.nextFollowUpAt
-      ? new Date(input.nextFollowUpAt)
-      : null
+    updateData.nextFollowUpAt = input.nextFollowUpAt instanceof Date
+      ? input.nextFollowUpAt
+      : input.nextFollowUpAt
+        ? new Date(input.nextFollowUpAt)
+        : null
+  if (input.lastContactedAt !== undefined)
+    updateData.lastContactedAt = input.lastContactedAt instanceof Date
+      ? input.lastContactedAt
+      : input.lastContactedAt
+        ? new Date(input.lastContactedAt)
+        : null
 
   const lead = await prisma.lead.update({
     where: { id },

@@ -1,4 +1,4 @@
-import { getLead, markLeadAsContacted, updateLead, deleteLead } from "@/app/actions/leads"
+import { getLead, updateLead, deleteLead } from "@/app/actions/leads"
 import { createNote } from "@/app/actions/notes"
 import { LeadActions } from "@/components/lead-actions"
 import { LeadTimeline } from "@/components/lead-timeline"
@@ -28,10 +28,8 @@ export async function LeadDetailContent({ leadId }: LeadDetailContentProps) {
     New: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
     Contacted: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400",
     Qualified: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
-    Viewing: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400",
-    Negotiation: "bg-orange-500/10 text-orange-700 dark:text-orange-400",
-    Won: "bg-green-500/10 text-green-700 dark:text-green-400",
-    Lost: "bg-gray-500/10 text-gray-700 dark:text-gray-400",
+    Follow: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400",
+    Closed: "bg-green-500/10 text-green-700 dark:text-green-400",
   }
 
   const priorityColors: Record<string, string> = {
