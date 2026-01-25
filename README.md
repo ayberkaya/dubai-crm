@@ -205,15 +205,24 @@ The dashboard shows three sections:
 
 ### Prisma Error: "the URL must start with the protocol `file:`"
 
-This error occurs when `DATABASE_URL` is not set or is incorrectly configured in production. The application requires PostgreSQL, not SQLite.
+This error indicates your deployment is using an old build with SQLite schema, or `DATABASE_URL` is missing/incorrect. The application requires PostgreSQL.
+
+**Root Cause:**
+- The deployed build has `provider = "sqlite"` in `schema.prisma` (old version)
+- OR `DATABASE_URL` is not set or incorrectly formatted
 
 **Fix:**
-1. Ensure `DATABASE_URL` is set in your production environment variables
-2. Verify it's a PostgreSQL connection string starting with `postgresql://` or `postgres://`
-3. Example format: `postgresql://user:password@host:port/database`
-4. On Railway: Add a PostgreSQL plugin and reference its `DATABASE_URL` in your web service variables
+1. **Verify `DATABASE_URL` is set** in your production environment variables
+2. **Verify it's PostgreSQL format**: Must start with `postgresql://` or `postgres://`
+   - Example: `postgresql://user:password@host:port/database`
+3. **On Railway:**
+   - Add a PostgreSQL plugin if you haven't already
+   - In your web service → Variables, add `DATABASE_URL` (reference the Postgres service's `DATABASE_URL`)
+4. **Redeploy** to ensure the latest schema (`provider = "postgresql"`) is used
+   - The build script now validates this before building
 
-The application now validates `DATABASE_URL` at startup and will provide clear error messages if it's missing or malformed.
+**Prevention:**
+The build process now validates `DATABASE_URL` and schema provider before building, preventing this issue in future deployments.
 
 ## Notes
 
