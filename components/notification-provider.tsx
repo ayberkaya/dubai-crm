@@ -21,8 +21,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       await checkAndCreateNotifications()
       const count = await getUnreadNotificationCount()
       setUnreadCount(count)
-    } catch (error) {
+    } catch (error: any) {
+      // Ignore Next.js redirect errors
+      if (error?.digest?.startsWith("NEXT_REDIRECT") || error?.message?.includes("NEXT_REDIRECT")) {
+        return
+      }
+      
       console.error("Failed to refresh notifications:", error)
+      
       // Only show toast for database connection errors, not for every refresh failure
       if (error instanceof Error && error.message.includes("DATABASE_URL")) {
         toast({
@@ -31,6 +37,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           description: "Please check your database configuration. The application requires a PostgreSQL database.",
         })
       }
+      // Silently fail for other errors - don't spam user with notifications
     }
   }, [toast])
 

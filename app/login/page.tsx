@@ -27,14 +27,32 @@ export default function LoginPage() {
           title: "Login failed",
           description: result.error,
         })
+        setIsLoading(false)
       }
-    } catch (error) {
+      // If no error, redirect will happen (Next.js handles it)
+      // Don't set loading to false here as page will redirect
+    } catch (error: any) {
+      // Next.js redirect() throws a special error - ignore it
+      // Check multiple ways Next.js might signal a redirect
+      const isRedirectError = 
+        error?.digest?.startsWith("NEXT_REDIRECT") ||
+        error?.message?.includes("NEXT_REDIRECT") ||
+        error?.digest?.includes("redirect") ||
+        (error?.name === "RedirectError")
+      
+      if (isRedirectError) {
+        // Redirect is happening, let Next.js handle it
+        // Don't show error or reset loading state
+        return
+      }
+      
+      // Only show error for actual failures
+      console.error("Login error:", error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "An unexpected error occurred",
+        description: error?.message || "An unexpected error occurred",
       })
-    } finally {
       setIsLoading(false)
     }
   }
