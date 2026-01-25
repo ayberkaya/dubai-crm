@@ -5,9 +5,10 @@ import { LeadTimeline } from "@/components/lead-timeline"
 import { LeadForm } from "@/components/lead-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { formatAED, formatDate } from "@/lib/utils"
+import { formatAED, formatDate, generateWhatsAppLink } from "@/lib/utils"
 import { calculateLeadUrgency } from "@/lib/lead-utils"
-import { Phone, Mail, MapPin, Calendar, AlertCircle, Building2, DollarSign } from "lucide-react"
+import { Phone, Mail, MapPin, Calendar, AlertCircle, Building2, DollarSign, MessageCircle } from "lucide-react"
+import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { LeadStatus, Priority } from "@/lib/types"
 
@@ -80,7 +81,18 @@ export async function LeadDetailContent({ leadId }: LeadDetailContentProps) {
             {lead.phone && (
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{lead.phone}</span>
+                <span className="flex-1">{lead.phone}</span>
+                {generateWhatsAppLink(lead.phone) && (
+                  <Link
+                    href={generateWhatsAppLink(lead.phone)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 bg-green-50 dark:bg-green-950/30 rounded-md hover:bg-green-100 dark:hover:bg-green-950/50 transition-colors"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    WhatsApp
+                  </Link>
+                )}
               </div>
             )}
             {lead.email && (

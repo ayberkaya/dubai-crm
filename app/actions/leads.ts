@@ -276,3 +276,48 @@ export async function getDashboardData() {
     totalLeads: allLeads.length,
   }
 }
+
+/**
+ * Check for duplicate leads by phone or email
+ * @param phone - Phone number to check
+ * @param email - Email to check
+ * @param excludeId - Lead ID to exclude from check (for updates)
+ * @returns Array of duplicate leads found
+ */
+export async function checkDuplicates(
+  phone?: string | null,
+  email?: string | null,
+  excludeId?: string
+): Promise<Array<{ id: string; name: string | null; phone: string | null; email: string | null }>> {
+  if (!phone && !email) {
+    return []
+  }
+
+  const where: any = {
+    OR: [],
+  }
+
+  if (phone) {
+    where.OR.push({ phone: { contains: phone } })
+  }
+
+  if (email) {
+    where.OR.push({ email: { contains: email } })
+  }
+
+  if (excludeId) {
+    where.id = { not: excludeId }
+  }
+
+  const duplicates = await prisma.lead.findMany({
+    where,
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      email: true,
+    },
+  })
+
+  return duplicates
+}

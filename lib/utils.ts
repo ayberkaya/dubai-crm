@@ -35,3 +35,30 @@ export function formatDateShort(date: Date | string | null | undefined): string 
     day: "numeric",
   }).format(d)
 }
+
+/**
+ * Generates a WhatsApp chat link for a phone number
+ * @param phone - Phone number (can include +, spaces, dashes - will be cleaned)
+ * @param message - Optional pre-filled message
+ * @returns WhatsApp web URL
+ */
+export function generateWhatsAppLink(phone: string | null | undefined, message?: string): string | null {
+  if (!phone) return null
+  
+  // Remove all non-digit characters except +
+  const cleaned = phone.replace(/[^\d+]/g, "")
+  
+  // If no + prefix, assume UAE country code (+971)
+  const phoneNumber = cleaned.startsWith("+") ? cleaned : `+971${cleaned}`
+  
+  // Remove + for URL encoding
+  const encodedPhone = phoneNumber.replace("+", "")
+  
+  const baseUrl = `https://wa.me/${encodedPhone}`
+  if (message) {
+    const encodedMessage = encodeURIComponent(message)
+    return `${baseUrl}?text=${encodedMessage}`
+  }
+  
+  return baseUrl
+}

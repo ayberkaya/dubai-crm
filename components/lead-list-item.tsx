@@ -4,9 +4,9 @@ import { useState } from "react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { formatAED, formatDateShort } from "@/lib/utils"
+import { formatAED, formatDateShort, generateWhatsAppLink } from "@/lib/utils"
 import { calculateLeadUrgency, type LeadWithRelations } from "@/lib/lead-utils"
-import { Phone, Mail, MapPin, Calendar, AlertCircle } from "lucide-react"
+import { Phone, Mail, MapPin, Calendar, AlertCircle, MessageCircle } from "lucide-react"
 import type { LeadStatus, Priority } from "@/lib/types"
 import { ContactedDialog } from "@/components/contacted-dialog"
 
@@ -58,9 +58,22 @@ export function LeadListItem({ lead, showUrgency = false }: LeadListItemProps) {
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   {lead.phone && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <Phone className="h-3 w-3" />
-                      {lead.phone}
+                      <span>{lead.phone}</span>
+                      {generateWhatsAppLink(lead.phone) && (
+                        <Link
+                          href={generateWhatsAppLink(lead.phone)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-0.5 text-[10px] font-medium text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 bg-green-50 dark:bg-green-950/30 rounded px-1.5 py-0.5 hover:bg-green-100 dark:hover:bg-green-950/50 transition-colors"
+                          title="Open WhatsApp"
+                        >
+                          <MessageCircle className="h-2.5 w-2.5" />
+                          WA
+                        </Link>
+                      )}
                     </div>
                   )}
                   {lead.email && (

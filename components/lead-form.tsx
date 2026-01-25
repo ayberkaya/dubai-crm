@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createLead, updateLead, type CreateLeadInput } from "@/app/actions/leads"
+import { createLead, updateLead, checkDuplicates, type CreateLeadInput } from "@/app/actions/leads"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -26,6 +26,8 @@ import type {
 import type { LeadWithRelations } from "@/lib/lead-utils"
 import { MultiSelectAreas } from "@/components/multi-select-areas"
 import { Switch } from "@/components/ui/switch"
+import { AlertCircle } from "lucide-react"
+import Link from "next/link"
 
 interface LeadFormProps {
   lead?: LeadWithRelations
@@ -38,6 +40,8 @@ export function LeadForm({ lead }: LeadFormProps) {
   const [selectedAreas, setSelectedAreas] = useState<string[]>([])
   const [isInDubai, setIsInDubai] = useState(true)
   const [arrivalDate, setArrivalDate] = useState<string>("")
+  const [duplicates, setDuplicates] = useState<Array<{ id: string; name: string | null; phone: string | null; email: string | null }>>([])
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false)
   const [formData, setFormData] = useState<Partial<CreateLeadInput> & { moveInDate?: string; nextFollowUpAt?: string }>({
     name: lead?.name || "",
     phone: lead?.phone || "",
@@ -76,6 +80,30 @@ export function LeadForm({ lead }: LeadFormProps) {
       }
     }
   }, [lead])
+
+  // Check for duplicates when phone or email changes
+  useEffect(() => {
+    if (!formData.phone && !formData.email) {
+      setDuplicates([])
+      return
+    }
+
+    // Debounce: only check if user stops typing for 500ms
+    setCheckingDuplicates(true)
+    const timeoutId = setTimeout(async () => {
+      try {
+        const found = await checkDuplicates(formData.phone || null, formData.email || null, lead?.id)
+        setDuplicates(found)
+      } catch (error) {
+        // Silently fail - duplicate check is non-blocking
+        console.error("Failed to check duplicates:", error)
+      } finally {
+        setCheckingDuplicates(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [formData.phone, formData.email, lead?.id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -137,7 +165,31 @@ export function LeadForm({ lead }: LeadFormProps) {
             type="tel"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            className={duplicates.some(d => d.phone && formData.phone && d.phone.toLowerCase().includes(formData.phone.toLowerCase())) ? "border-yellow-500 focus-visible:ring-yellow-500" : ""}
           />
+          {duplicates.some(d => d.phone && formData.phone && d.phone.toLowerCase().includes(formData.phone.toLowerCase())) && (
+            <div className="flex items-start gap-2 p-2 text-sm text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 rounded-md border border-yellow-200 dark:border-yellow-900">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="font-medium mb-1">Possible duplicate phone number found:</p>
+                <ul className="space-y-1">
+                  {duplicates
+                    .filter(d => d.phone && formData.phone && d.phone.toLowerCase().includes(formData.phone.toLowerCase()))
+                    .map((dup) => (
+                      <li key={dup.id}>
+                        <Link
+                          href={`/leads/${dup.id}`}
+                          className="text-yellow-800 dark:text-yellow-300 hover:underline"
+                          target="_blank"
+                        >
+                          {dup.name || "Unnamed Lead"} ({dup.phone})
+                        </Link>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -147,7 +199,31 @@ export function LeadForm({ lead }: LeadFormProps) {
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className={duplicates.some(d => d.email && formData.email && d.email.toLowerCase().includes(formData.email.toLowerCase())) ? "border-yellow-500 focus-visible:ring-yellow-500" : ""}
           />
+          {duplicates.some(d => d.email && formData.email && d.email.toLowerCase().includes(formData.email.toLowerCase())) && (
+            <div className="flex items-start gap-2 p-2 text-sm text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 rounded-md border border-yellow-200 dark:border-yellow-900">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="font-medium mb-1">Possible duplicate email found:</p>
+                <ul className="space-y-1">
+                  {duplicates
+                    .filter(d => d.email && formData.email && d.email.toLowerCase().includes(formData.email.toLowerCase()))
+                    .map((dup) => (
+                      <li key={dup.id}>
+                        <Link
+                          href={`/leads/${dup.id}`}
+                          className="text-yellow-800 dark:text-yellow-300 hover:underline"
+                          target="_blank"
+                        >
+                          {dup.name || "Unnamed Lead"} ({dup.email})
+                        </Link>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
