@@ -185,6 +185,18 @@ export async function LeadDetailContent({ leadId }: LeadDetailContentProps) {
               No follow-up scheduled
             </div>
           )}
+          <div>
+            <span className="text-sm text-muted-foreground">Location: </span>
+            <span className="text-sm">
+              {(lead as any).isInDubai ? "In Dubai" : "Not in Dubai"}
+            </span>
+          </div>
+          {!(lead as any).isInDubai && (lead as any).arrivalDate && (
+            <div>
+              <span className="text-sm text-muted-foreground">Expected arrival: </span>
+              <span>{formatDate((lead as any).arrivalDate)}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 

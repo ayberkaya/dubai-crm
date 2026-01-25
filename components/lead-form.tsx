@@ -25,6 +25,7 @@ import type {
 } from "@/lib/types"
 import type { LeadWithRelations } from "@/lib/lead-utils"
 import { MultiSelectAreas } from "@/components/multi-select-areas"
+import { Switch } from "@/components/ui/switch"
 
 interface LeadFormProps {
   lead?: LeadWithRelations
@@ -35,6 +36,8 @@ export function LeadForm({ lead }: LeadFormProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [selectedAreas, setSelectedAreas] = useState<string[]>([])
+  const [isInDubai, setIsInDubai] = useState(true)
+  const [arrivalDate, setArrivalDate] = useState<string>("")
   const [formData, setFormData] = useState<Partial<CreateLeadInput> & { moveInDate?: string; nextFollowUpAt?: string }>({
     name: lead?.name || "",
     phone: lead?.phone || "",
@@ -56,15 +59,21 @@ export function LeadForm({ lead }: LeadFormProps) {
     notes: lead?.notes || "",
     status: (lead?.status as LeadStatus) || "New",
     priority: (lead?.priority as Priority) || "Med",
-    nextFollowUpAt: lead?.nextFollowUpAt
-      ? new Date(lead.nextFollowUpAt).toISOString().slice(0, 16)
-      : "",
   })
 
   useEffect(() => {
     if (lead?.areas) {
       const areasArray = Array.isArray(lead.areas) ? lead.areas : JSON.parse(lead.areas || "[]")
       setSelectedAreas(areasArray)
+    }
+    if (lead) {
+      setIsInDubai((lead as any).isInDubai ?? true)
+      if ((lead as any).arrivalDate) {
+        const date = typeof (lead as any).arrivalDate === "string" 
+          ? new Date((lead as any).arrivalDate)
+          : (lead as any).arrivalDate
+        setArrivalDate(date.toISOString().split("T")[0])
+      }
     }
   }, [lead])
 
@@ -81,9 +90,8 @@ export function LeadForm({ lead }: LeadFormProps) {
         beds: formData.beds ? Number(formData.beds) : undefined,
         baths: formData.baths ? Number(formData.baths) : undefined,
         moveInDate: formData.moveInDate && typeof formData.moveInDate === "string" ? new Date(formData.moveInDate) : undefined,
-        nextFollowUpAt: formData.nextFollowUpAt
-          ? new Date(formData.nextFollowUpAt)
-          : undefined,
+        isInDubai,
+        arrivalDate: arrivalDate ? new Date(arrivalDate) : undefined,
       }
 
       if (lead) {
@@ -326,7 +334,7 @@ export function LeadForm({ lead }: LeadFormProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">None</SelectItem>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+              {[1, 2, 3, 4, 5].map((num) => (
                 <SelectItem key={num} value={num.toString()}>
                   {num}
                 </SelectItem>
@@ -351,7 +359,7 @@ export function LeadForm({ lead }: LeadFormProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">None</SelectItem>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+              {[1, 2, 3, 4, 5].map((num) => (
                 <SelectItem key={num} value={num.toString()}>
                   {num}
                 </SelectItem>
@@ -385,29 +393,38 @@ export function LeadForm({ lead }: LeadFormProps) {
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="moveInDate">Move-in Date</Label>
-          <Input
-            id="moveInDate"
-            type="date"
-            value={(typeof formData.moveInDate === "string" ? formData.moveInDate : "") || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, moveInDate: e.target.value })
-            }
+      </div>
+
+      <div className="space-y-4 border-t pt-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="isInDubai">Currently in Dubai</Label>
+            <p className="text-sm text-muted-foreground">
+              Is the lead currently in Dubai?
+            </p>
+          </div>
+          <Switch
+            id="isInDubai"
+            checked={isInDubai}
+            onCheckedChange={setIsInDubai}
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="nextFollowUpAt">Next Follow-up</Label>
-          <Input
-            id="nextFollowUpAt"
-            type="datetime-local"
-            value={(typeof formData.nextFollowUpAt === "string" ? formData.nextFollowUpAt : "") || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, nextFollowUpAt: e.target.value })
-            }
-          />
-        </div>
+        {!isInDubai && (
+          <div className="space-y-2">
+            <Label htmlFor="arrivalDate">Expected Arrival Date</Label>
+            <Input
+              id="arrivalDate"
+              type="date"
+              value={arrivalDate}
+              onChange={(e) => setArrivalDate(e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
+            />
+            <p className="text-sm text-muted-foreground">
+              When is the lead expected to arrive in Dubai?
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
