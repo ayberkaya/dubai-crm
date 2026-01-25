@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
+import { useNotifications } from "@/components/notification-provider"
 import type {
   LeadStatus,
   LeadType,
@@ -36,6 +37,7 @@ interface LeadFormProps {
 export function LeadForm({ lead }: LeadFormProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const { refreshNotifications } = useNotifications()
   const [loading, setLoading] = useState(false)
   const [selectedAreas, setSelectedAreas] = useState<string[]>([])
   const [isInDubai, setIsInDubai] = useState(true)
@@ -134,6 +136,12 @@ export function LeadForm({ lead }: LeadFormProps) {
         })
         router.push("/leads")
       }
+      
+      // If arrival date was set/changed, refresh notifications to update UI
+      if (arrivalDate) {
+        await refreshNotifications()
+      }
+      
       router.refresh()
     } catch (error: any) {
       toast({

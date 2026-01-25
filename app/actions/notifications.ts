@@ -94,11 +94,11 @@ export async function checkAndCreateNotifications() {
       reminderDate.setDate(reminderDate.getDate() - 1)
       
       // Check if today is the reminder date (1 day before arrival)
-      const reminderDateStart = startOfDay(reminderDate)
-      const reminderDateEnd = new Date(reminderDateStart)
-      reminderDateEnd.setDate(reminderDateEnd.getDate() + 1)
+      // Use date strings (YYYY-MM-DD) for timezone-independent comparison
+      const todayStr = now.toISOString().split('T')[0]
+      const reminderDateStr = reminderDate.toISOString().split('T')[0]
       
-      if (now >= reminderDateStart && now < reminderDateEnd) {
+      if (todayStr === reminderDateStr) {
         const existing = await prisma.notification.findFirst({
           where: {
             leadId: lead.id,

@@ -2,7 +2,7 @@ import { getDashboardData } from "@/app/actions/leads"
 import { LeadCard } from "@/components/lead-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, Plus } from "lucide-react"
+import { AlertCircle, Plus, Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
@@ -125,6 +125,64 @@ export async function DashboardContent() {
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {data.dueNext7Days.map((lead) => (
+                  <LeadCard key={lead.id} lead={lead} />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Arriving Today Section */}
+        <Card className="border-blue-200 dark:border-blue-800">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <CardTitle>Arriving Today</CardTitle>
+              </div>
+              <Badge variant="default" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                {data.arrivingToday.length}
+              </Badge>
+            </div>
+            <CardDescription>
+              Leads arriving in Dubai today
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {data.arrivingToday.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No leads arriving today</p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {data.arrivingToday.map((lead) => (
+                  <LeadCard key={lead.id} lead={lead} />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Arriving Tomorrow Section */}
+        <Card className="border-blue-200 dark:border-blue-800">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <CardTitle>Arriving Tomorrow</CardTitle>
+              </div>
+              <Badge variant="default" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                {data.arrivingTomorrow.length}
+              </Badge>
+            </div>
+            <CardDescription>
+              Leads arriving in Dubai tomorrow (1 day reminder)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {data.arrivingTomorrow.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No leads arriving tomorrow</p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {data.arrivingTomorrow.map((lead) => (
                   <LeadCard key={lead.id} lead={lead} />
                 ))}
               </div>

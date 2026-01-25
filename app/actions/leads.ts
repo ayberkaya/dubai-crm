@@ -11,6 +11,8 @@ import type {
 } from "@/lib/types"
 import { revalidatePath } from "next/cache"
 import { calculateLeadUrgency, isDueToday, isDueNext7Days } from "@/lib/lead-utils"
+import { checkAndCreateNotifications } from "@/app/actions/notifications"
+import { startOfDay } from "date-fns"
 
 export interface CreateLeadInput {
   name?: string
@@ -73,6 +75,16 @@ export async function createLead(input: CreateLeadInput) {
     },
   })
 
+  // If arrival date was set, immediately check for notifications
+  if (input.arrivalDate) {
+    try {
+      await checkAndCreateNotifications()
+    } catch (error) {
+      // Don't fail the create if notification check fails
+      console.error("Failed to check notifications after lead creation:", error)
+    }
+  }
+
   revalidatePath("/")
   revalidatePath("/leads")
   return lead
@@ -125,6 +137,16 @@ export async function updateLead(id: string, input: Partial<CreateLeadInput>) {
     where: { id },
     data: updateData,
   })
+
+  // If arrival date was updated, immediately check for notifications
+  if (input.arrivalDate !== undefined) {
+    try {
+      await checkAndCreateNotifications()
+    } catch (error) {
+      // Don't fail the update if notification check fails
+      console.error("Failed to check notifications after arrival date update:", error)
+    }
+  }
 
   revalidatePath("/")
   revalidatePath("/leads")
@@ -249,6 +271,19 @@ export async function getDashboardData() {
     const overdue: typeof allLeads = []
     const dueToday: typeof allLeads = []
     const dueNext7Days: typeof allLeads = []
+    const arrivingToday: typeof allLeads = []
+    const arrivingTomorrow: typeof allLeads = []
+
+    const now = new Date()
+    const todayStart = startOfDay(now)
+    const todayEnd = new Date(todayStart)
+    todayEnd.setDate(todayEnd.getDate() + 1)
+    
+    // Calculate tomorrow start for comparison
+    const tomorrowStart = new Date(todayStart)
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1)
+    const tomorrowEnd = new Date(tomorrowStart)
+    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1)
 
     for (const lead of allLeads) {
       const urgency = calculateLeadUrgency(lead)
@@ -258,6 +293,23 @@ export async function getDashboardData() {
         dueToday.push(lead)
       } else if (isDueNext7Days(lead)) {
         dueNext7Days.push(lead)
+      }
+
+      // Check for arrival leads - match notification logic exactly
+      const arrivalDate = (lead as any).arrivalDate
+      if (arrivalDate && !(lead as any).isInDubai) {
+        const arrival = new Date(arrivalDate)
+        const arrivalStart = startOfDay(arrival)
+        
+        // Arriving today: arrival date is today
+        if (arrivalStart >= todayStart && arrivalStart < todayEnd) {
+          arrivingToday.push(lead)
+        }
+        // Arriving tomorrow: arrival date is tomorrow (1 day reminder)
+        // This matches notification logic where reminder is shown 1 day before
+        if (arrivalStart >= tomorrowStart && arrivalStart < tomorrowEnd) {
+          arrivingTomorrow.push(lead)
+        }
       }
     }
 
@@ -271,6 +323,14 @@ export async function getDashboardData() {
         areas: JSON.parse(lead.areas || "[]") as string[],
       })),
       dueNext7Days: dueNext7Days.map((lead) => ({
+        ...lead,
+        areas: JSON.parse(lead.areas || "[]") as string[],
+      })),
+      arrivingToday: arrivingToday.map((lead) => ({
+        ...lead,
+        areas: JSON.parse(lead.areas || "[]") as string[],
+      })),
+      arrivingTomorrow: arrivingTomorrow.map((lead) => ({
         ...lead,
         areas: JSON.parse(lead.areas || "[]") as string[],
       })),
