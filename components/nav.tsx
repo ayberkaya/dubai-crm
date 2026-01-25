@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Users, Settings, Bell } from "lucide-react"
+import { Home, Users, Settings, Bell, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useNotifications } from "@/components/notification-provider"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { logout } from "@/app/actions/auth"
 
 export function Nav() {
   const pathname = usePathname()
@@ -59,6 +60,11 @@ export function Nav() {
             </Button>
           </Link>
           <ThemeToggle />
+          <form action={logout}>
+            <Button type="submit" variant="ghost" size="icon" title="Logout">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </form>
         </div>
       </div>
     </nav>

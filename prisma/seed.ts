@@ -1,9 +1,22 @@
 import { PrismaClient } from "@prisma/client"
+import { hash } from "bcryptjs"
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log("Seeding database...")
+
+  // Create user
+  const hashedPassword = await hash("a1s2d3f4", 10)
+  const user = await prisma.user.upsert({
+    where: { username: "ayberkkaya" },
+    update: {},
+    create: {
+      username: "ayberkkaya",
+      password: hashedPassword,
+    },
+  })
+  console.log(`Created/updated user: ${user.username}`)
 
   // Create sample leads
   const leads = [

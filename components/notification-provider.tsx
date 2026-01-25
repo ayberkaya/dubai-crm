@@ -23,8 +23,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       setUnreadCount(count)
     } catch (error) {
       console.error("Failed to refresh notifications:", error)
+      // Only show toast for database connection errors, not for every refresh failure
+      if (error instanceof Error && error.message.includes("DATABASE_URL")) {
+        toast({
+          variant: "destructive",
+          title: "Database Connection Error",
+          description: "Please check your database configuration. The application requires a PostgreSQL database.",
+        })
+      }
     }
-  }, [])
+  }, [toast])
 
   useEffect(() => {
     // Request notification permission

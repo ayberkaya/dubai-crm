@@ -7,7 +7,7 @@ A premium, single-user Lead CRM for Dubai real estate follow-ups. Built for spee
 - **Next.js 14** (App Router) with TypeScript
 - **Tailwind CSS** for styling
 - **shadcn/ui** components
-- **Prisma** with SQLite for local database
+- **Prisma** with PostgreSQL
 - **Server Actions** for data mutations
 
 ## Features
@@ -38,12 +38,18 @@ A premium, single-user Lead CRM for Dubai real estate follow-ups. Built for spee
 pnpm install
 ```
 
-2. Set up the database:
+2. Configure the database: copy `.env.example` to `.env` and set `DATABASE_URL` to your PostgreSQL connection string. For local development, you can run Postgres via Docker:
+   ```bash
+   docker run -d -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres
+   ```
+   Then `DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/dubai_rcrm"`.
+
+3. Set up the database:
 ```bash
 pnpm db:push
 ```
 
-3. (Optional) Seed the database with sample data:
+4. (Optional) Seed the database with sample data:
 ```bash
 pnpm db:seed
 ```
@@ -181,11 +187,37 @@ The dashboard shows three sections:
     └── seed.ts           # Seed script
 ```
 
+## Deploying to Railway
+
+1. Add a **PostgreSQL** plugin to your Railway project.
+2. In your **web service** → **Variables**, add `DATABASE_URL`. Use a reference to the Postgres service’s `DATABASE_URL` (or paste the connection string). The build runs `prisma db push`, so tables are created automatically.
+3. Deploy. Generate a domain under **Settings** → **Networking** → **Public Networking** if needed.
+4. **Create the initial user**: After deployment, run the user creation script via Railway's CLI:
+   ```bash
+   railway run pnpm db:add-user
+   ```
+   Or run the seed script (which creates the user and sample leads):
+   ```bash
+   railway run pnpm db:seed
+   ```
+
+## Troubleshooting
+
+### Prisma Error: "the URL must start with the protocol `file:`"
+
+This error occurs when `DATABASE_URL` is not set or is incorrectly configured in production. The application requires PostgreSQL, not SQLite.
+
+**Fix:**
+1. Ensure `DATABASE_URL` is set in your production environment variables
+2. Verify it's a PostgreSQL connection string starting with `postgresql://` or `postgres://`
+3. Example format: `postgresql://user:password@host:port/database`
+4. On Railway: Add a PostgreSQL plugin and reference its `DATABASE_URL` in your web service variables
+
+The application now validates `DATABASE_URL` at startup and will provide clear error messages if it's missing or malformed.
+
 ## Notes
 
-- Database is stored locally in `prisma/dev.db` (SQLite)
-- No external services or APIs required
-- All data is local to your machine
+- Database: PostgreSQL (local and production). Local dev requires a Postgres instance (e.g. Docker).
 - Notifications work only when the app is open (browser-based)
 
 ## License

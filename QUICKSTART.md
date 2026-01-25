@@ -7,22 +7,24 @@
    pnpm install
    ```
 
-2. **Initialize database:**
+2. **Configure database:** Copy `.env.example` to `.env` and set `DATABASE_URL` to your PostgreSQL connection string. Use Docker for local Postgres if needed: `docker run -d -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres`, then `DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/dubai_rcrm"`.
+
+3. **Initialize database:**
    ```bash
    pnpm db:push
    ```
 
-3. **Seed with sample data (optional):**
+4. **Seed with sample data (optional):**
    ```bash
    pnpm db:seed
    ```
 
-4. **Start development server:**
+5. **Start development server:**
    ```bash
    pnpm dev
    ```
 
-5. **Open browser:**
+6. **Open browser:**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Key Workflows
@@ -90,8 +92,8 @@ A lead is marked **OVERDUE** if:
 ## Troubleshooting
 
 **Database errors:**
+- Ensure `DATABASE_URL` is set in `.env` and Postgres is running
 - Run `pnpm db:push` to sync schema
-- Delete `prisma/dev.db` and run `pnpm db:push` again to reset
 
 **Notifications not working:**
 - Check browser notification permissions in Settings

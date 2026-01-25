@@ -7,7 +7,37 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 export async function DashboardContent() {
-  const data = await getDashboardData()
+  let data
+  try {
+    data = await getDashboardData()
+  } catch (error) {
+    // Return error UI instead of throwing to prevent full page crash
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          </div>
+        </div>
+        <Card className="border-destructive">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              <CardTitle>Error loading dashboard</CardTitle>
+            </div>
+            <CardDescription>
+              {error instanceof Error ? error.message : "Failed to load dashboard data"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Please check your database connection and try refreshing the page.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

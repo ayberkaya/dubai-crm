@@ -237,43 +237,52 @@ export async function getLeads(filters?: {
 }
 
 export async function getDashboardData() {
-  const allLeads = await prisma.lead.findMany({
-    include: {
-      _count: {
-        select: { leadNotes: true },
+  try {
+    const allLeads = await prisma.lead.findMany({
+      include: {
+        _count: {
+          select: { leadNotes: true },
+        },
       },
-    },
-  })
+    })
 
-  const overdue: typeof allLeads = []
-  const dueToday: typeof allLeads = []
-  const dueNext7Days: typeof allLeads = []
+    const overdue: typeof allLeads = []
+    const dueToday: typeof allLeads = []
+    const dueNext7Days: typeof allLeads = []
 
-  for (const lead of allLeads) {
-    const urgency = calculateLeadUrgency(lead)
-    if (urgency.isOverdue) {
-      overdue.push(lead)
-    } else if (isDueToday(lead)) {
-      dueToday.push(lead)
-    } else if (isDueNext7Days(lead)) {
-      dueNext7Days.push(lead)
+    for (const lead of allLeads) {
+      const urgency = calculateLeadUrgency(lead)
+      if (urgency.isOverdue) {
+        overdue.push(lead)
+      } else if (isDueToday(lead)) {
+        dueToday.push(lead)
+      } else if (isDueNext7Days(lead)) {
+        dueNext7Days.push(lead)
+      }
     }
-  }
 
-  return {
-    overdue: overdue.map((lead) => ({
-      ...lead,
-      areas: JSON.parse(lead.areas || "[]") as string[],
-    })),
-    dueToday: dueToday.map((lead) => ({
-      ...lead,
-      areas: JSON.parse(lead.areas || "[]") as string[],
-    })),
-    dueNext7Days: dueNext7Days.map((lead) => ({
-      ...lead,
-      areas: JSON.parse(lead.areas || "[]") as string[],
-    })),
-    totalLeads: allLeads.length,
+    return {
+      overdue: overdue.map((lead) => ({
+        ...lead,
+        areas: JSON.parse(lead.areas || "[]") as string[],
+      })),
+      dueToday: dueToday.map((lead) => ({
+        ...lead,
+        areas: JSON.parse(lead.areas || "[]") as string[],
+      })),
+      dueNext7Days: dueNext7Days.map((lead) => ({
+        ...lead,
+        areas: JSON.parse(lead.areas || "[]") as string[],
+      })),
+      totalLeads: allLeads.length,
+    }
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error)
+    // Re-throw with a more user-friendly message
+    if (error instanceof Error) {
+      throw new Error(`Failed to load dashboard data: ${error.message}`)
+    }
+    throw new Error("Failed to load dashboard data. Please check your database connection.")
   }
 }
 
