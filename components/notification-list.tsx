@@ -50,6 +50,8 @@ export function NotificationList({ notifications, onRefresh }: NotificationListP
         return `Follow-up for ${leadName} is overdue`
       case "DueToday":
         return `Follow-up for ${leadName} is due today`
+      case "ArrivalReminder":
+        return `${leadName} is arriving in Dubai tomorrow`
       default:
         return `Action needed for ${leadName}`
     }
@@ -62,6 +64,8 @@ export function NotificationList({ notifications, onRefresh }: NotificationListP
         return <AlertCircle className="h-4 w-4 text-destructive" />
       case "DueToday":
         return <Calendar className="h-4 w-4 text-yellow-600" />
+      case "ArrivalReminder":
+        return <Calendar className="h-4 w-4 text-blue-600" />
       default:
         return <Phone className="h-4 w-4" />
     }

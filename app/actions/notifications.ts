@@ -85,6 +85,41 @@ export async function checkAndCreateNotifications() {
         })
       }
     }
+
+    // Create arrival reminder notification (1 day before arrival)
+    const arrivalDate = (lead as any).arrivalDate
+    if (arrivalDate && !(lead as any).isInDubai) {
+      const arrival = new Date(arrivalDate)
+      const reminderDate = new Date(arrival)
+      reminderDate.setDate(reminderDate.getDate() - 1)
+      
+      // Check if today is the reminder date (1 day before arrival)
+      const reminderDateStart = startOfDay(reminderDate)
+      const reminderDateEnd = new Date(reminderDateStart)
+      reminderDateEnd.setDate(reminderDateEnd.getDate() + 1)
+      
+      if (now >= reminderDateStart && now < reminderDateEnd) {
+        const existing = await prisma.notification.findFirst({
+          where: {
+            leadId: lead.id,
+            type: "ArrivalReminder",
+            createdAt: {
+              gte: todayStart,
+              lt: todayEnd,
+            },
+          },
+        })
+
+        if (!existing) {
+          await prisma.notification.create({
+            data: {
+              leadId: lead.id,
+              type: "ArrivalReminder",
+            },
+          })
+        }
+      }
+    }
   }
 }
 

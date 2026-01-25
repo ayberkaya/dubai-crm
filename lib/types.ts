@@ -6,7 +6,7 @@ export type LeadSource = "WhatsApp" | "Instagram" | "PropertyFinder" | "Referral
 export type Language = "EN" | "TR" | "RU" | "AR"
 export type Priority = "Low" | "Med" | "High"
 export type Furnishing = "Furnished" | "Unfurnished"
-export type NotificationType = "OverdueNewContact" | "OverdueFollowUp" | "DueToday"
+export type NotificationType = "OverdueNewContact" | "OverdueFollowUp" | "DueToday" | "ArrivalReminder"
 
 // Constants for easy access
 export const LeadStatusValues: LeadStatus[] = ["New", "Contacted", "Qualified", "Follow", "Closed"]
@@ -15,4 +15,4 @@ export const LeadSourceValues: LeadSource[] = ["WhatsApp", "Instagram", "Propert
 export const LanguageValues: Language[] = ["EN", "TR", "RU", "AR"]
 export const PriorityValues: Priority[] = ["Low", "Med", "High"]
 export const FurnishingValues: Furnishing[] = ["Furnished", "Unfurnished"]
-export const NotificationTypeValues: NotificationType[] = ["OverdueNewContact", "OverdueFollowUp", "DueToday"]
+export const NotificationTypeValues: NotificationType[] = ["OverdueNewContact", "OverdueFollowUp", "DueToday", "ArrivalReminder"]
