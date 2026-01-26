@@ -22,10 +22,22 @@ export function SettingsContent() {
   const [notifications, setNotifications] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
+  const loadNotifications = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await getUnreadNotifications()
+      setNotifications(data)
+    } catch (error) {
+      console.error("Failed to load notifications:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     setMounted(true)
     loadNotifications()
-  }, [])
+  }, [loadNotifications])
 
   // Reload notifications when pathname changes (after router.refresh())
   useEffect(() => {
@@ -65,18 +77,6 @@ export function SettingsContent() {
       window.removeEventListener("notifications-refreshed", handleNotificationRefresh)
     }
   }, [mounted, pathname, loadNotifications])
-
-  const loadNotifications = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await getUnreadNotifications()
-      setNotifications(data)
-    } catch (error) {
-      console.error("Failed to load notifications:", error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
 
   const handleMarkAllRead = async () => {
     try {
