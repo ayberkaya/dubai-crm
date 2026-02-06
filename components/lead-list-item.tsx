@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { formatAED, formatDateShort, generateWhatsAppLink } from "@/lib/utils"
@@ -16,6 +17,7 @@ interface LeadListItemProps {
 }
 
 export function LeadListItem({ lead, showUrgency = false }: LeadListItemProps) {
+  const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
   const urgency = showUrgency ? calculateLeadUrgency(lead) : null
 
@@ -36,11 +38,33 @@ export function LeadListItem({ lead, showUrgency = false }: LeadListItemProps) {
   const leadName = lead.name || lead.phone || lead.email || "Unnamed Lead"
   const areasArray = Array.isArray(lead.areas) ? lead.areas : (lead.areas ? JSON.parse(lead.areas) : [])
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent navigation if selecting text
+    if (window.getSelection()?.toString()) return
+    // Handle Command/Ctrl + Click for new tab
+    if (e.metaKey || e.ctrlKey) {
+      window.open(`/leads/${lead.id}`, '_blank')
+      return
+    }
+    router.push(`/leads/${lead.id}`)
+  }
+
   return (
     <>
       <div className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
         <div className="flex items-center justify-between gap-4">
-          <Link href={`/leads/${lead.id}`} className="flex-1 min-w-0">
+          <div
+            onClick={handleCardClick}
+            className="flex-1 min-w-0 cursor-pointer"
+            role="link"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                router.push(`/leads/${lead.id}`)
+              }
+            }}
+          >
             <div className="flex items-center gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -103,7 +127,7 @@ export function LeadListItem({ lead, showUrgency = false }: LeadListItemProps) {
                 </div>
               </div>
             </div>
-          </Link>
+          </div>
           {urgency?.isOverdue && (
             <Button
               variant="outline"
