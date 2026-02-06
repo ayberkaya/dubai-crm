@@ -260,6 +260,12 @@ export async function getLeads(filters?: {
 
 export async function getDashboardData() {
   try {
+    try {
+      await checkAndCreateNotifications()
+    } catch (e) {
+      console.error(e)
+    }
+
     const allLeads = await prisma.lead.findMany({
       include: {
         _count: {
@@ -278,7 +284,7 @@ export async function getDashboardData() {
     const todayStart = startOfDay(now)
     const todayEnd = new Date(todayStart)
     todayEnd.setDate(todayEnd.getDate() + 1)
-    
+
     // Calculate tomorrow start for comparison
     const tomorrowStart = new Date(todayStart)
     tomorrowStart.setDate(tomorrowStart.getDate() + 1)
@@ -300,7 +306,7 @@ export async function getDashboardData() {
       if (arrivalDate && !(lead as any).isInDubai) {
         const arrival = new Date(arrivalDate)
         const arrivalStart = startOfDay(arrival)
-        
+
         // Arriving today: arrival date is today
         if (arrivalStart >= todayStart && arrivalStart < todayEnd) {
           arrivingToday.push(lead)

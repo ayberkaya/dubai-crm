@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { getLeads } from "@/app/actions/leads"
+import { getLeads, updateLead } from "@/app/actions/leads"
 import { LeadCard } from "@/components/lead-card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -12,13 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search, X, Grid3x3, List, Plus, Filter } from "lucide-react"
+import { Search, X, Grid3x3, List, Plus, Filter, Columns } from "lucide-react"
 import Link from "next/link"
 import type { LeadStatus, LeadType, LeadSource, Priority, Language } from "@/lib/types"
 import { sortLeadsByUrgency, type LeadWithRelations } from "@/lib/lead-utils"
 import { LeadListItem } from "@/components/lead-list-item"
+import { KanbanBoard } from "@/components/kanban/kanban-board"
+import { useToast } from "@/components/ui/use-toast"
 
-type SortOption = 
+type SortOption =
   | "most_urgent"
   | "name_az"
   | "name_za"
@@ -33,7 +35,7 @@ type SortOption =
 export function LeadsContent() {
   const [leads, setLeads] = useState<LeadWithRelations[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "board">("board")
   const [sortBy, setSortBy] = useState<SortOption>("most_urgent")
   const [search, setSearch] = useState("")
   const [showFilters, setShowFilters] = useState(false)
@@ -46,6 +48,7 @@ export function LeadsContent() {
     budgetMin?: string
     budgetMax?: string
   }>({})
+  const { toast } = useToast()
 
   const sortLeads = useCallback((data: LeadWithRelations[]) => {
     switch (sortBy) {
@@ -64,11 +67,11 @@ export function LeadsContent() {
           return nameB.localeCompare(nameA)
         })
       case "newest":
-        return [...data].sort((a, b) => 
+        return [...data].sort((a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
       case "oldest":
-        return [...data].sort((a, b) => 
+        return [...data].sort((a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         )
       case "followup_soonest":
@@ -121,7 +124,7 @@ export function LeadsContent() {
     } finally {
       setLoading(false)
     }
-  }, [search, filters, sortBy])
+  }, [search, filters, sortBy, sortLeads])
 
   useEffect(() => {
     loadLeads()
@@ -132,11 +135,34 @@ export function LeadsContent() {
     setSearch("")
   }
 
+  const handleLeadUpdate = async (leadId: string, status: LeadStatus) => {
+    // Optimistic update
+    setLeads(current => current.map(l =>
+      l.id === leadId ? { ...l, status } : l
+    ))
+
+    try {
+      await updateLead(leadId, { status })
+      toast({
+        title: "Status updated",
+        description: `Lead moved to ${status}`,
+      })
+    } catch (error) {
+      console.error("Failed to update lead status", error)
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
+      })
+      loadLeads() // Revert on error
+    }
+  }
+
   const hasActiveFilters = Object.keys(filters).length > 0 || search.length > 0
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 flex flex-col h-[calc(100vh-140px)]">
+      <div className="flex items-center justify-between shrink-0">
         <h1 className="text-3xl font-bold tracking-tight">Leads</h1>
         <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
@@ -158,9 +184,17 @@ export function LeadsContent() {
           </Select>
           <div className="flex items-center border rounded-md">
             <Button
-              variant={viewMode === "grid" ? "default" : "ghost"}
+              variant={viewMode === "board" ? "default" : "ghost"}
               size="sm"
               className="rounded-r-none"
+              onClick={() => setViewMode("board")}
+            >
+              <Columns className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              className="rounded-none border-l border-r"
               onClick={() => setViewMode("grid")}
             >
               <Grid3x3 className="h-4 w-4" />
@@ -184,7 +218,7 @@ export function LeadsContent() {
       </div>
 
       {/* Search and Filters */}
-      <div className="space-y-4">
+      <div className="space-y-4 shrink-0">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -218,99 +252,99 @@ export function LeadsContent() {
 
         {showFilters && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-          <Select
-            value={filters.status || "all"}
-            onValueChange={(value) =>
-              setFilters({ ...filters, status: value === "all" ? undefined : (value as LeadStatus) })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              {(["New", "Contacted", "Qualified", "Follow", "Closed"] as LeadStatus[]).map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select
+              value={filters.status || "all"}
+              onValueChange={(value) =>
+                setFilters({ ...filters, status: value === "all" ? undefined : (value as LeadStatus) })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {(["New", "Contacted", "Qualified", "Follow", "Closed"] as LeadStatus[]).map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Select
-            value={filters.leadType || "all"}
-            onValueChange={(value) =>
-              setFilters({ ...filters, leadType: value === "all" ? undefined : (value as LeadType) })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              {(["Rental", "OffPlan", "SecondarySale"] as LeadType[]).map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type.replace(/([A-Z])/g, " $1").trim()}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select
+              value={filters.leadType || "all"}
+              onValueChange={(value) =>
+                setFilters({ ...filters, leadType: value === "all" ? undefined : (value as LeadType) })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {(["Rental", "OffPlan", "SecondarySale"] as LeadType[]).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type.replace(/([A-Z])/g, " $1").trim()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Select
-            value={filters.source || "all"}
-            onValueChange={(value) =>
-              setFilters({ ...filters, source: value === "all" ? undefined : (value as LeadSource) })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Source" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sources</SelectItem>
-              {(["WhatsApp", "Instagram", "PropertyFinder", "Referral", "WalkIn", "Other"] as LeadSource[]).map((source) => (
-                <SelectItem key={source} value={source}>
-                  {source.replace(/([A-Z])/g, " $1").trim()}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select
+              value={filters.source || "all"}
+              onValueChange={(value) =>
+                setFilters({ ...filters, source: value === "all" ? undefined : (value as LeadSource) })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                {(["WhatsApp", "Instagram", "PropertyFinder", "Referral", "WalkIn", "Other"] as LeadSource[]).map((source) => (
+                  <SelectItem key={source} value={source}>
+                    {source.replace(/([A-Z])/g, " $1").trim()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Select
-            value={filters.priority || "all"}
-            onValueChange={(value) =>
-              setFilters({ ...filters, priority: value === "all" ? undefined : (value as Priority) })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Priority" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Priorities</SelectItem>
-              {(["Low", "Med", "High"] as Priority[]).map((priority) => (
-                <SelectItem key={priority} value={priority}>
-                  {priority}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select
+              value={filters.priority || "all"}
+              onValueChange={(value) =>
+                setFilters({ ...filters, priority: value === "all" ? undefined : (value as Priority) })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Priorities</SelectItem>
+                {(["Low", "Med", "High"] as Priority[]).map((priority) => (
+                  <SelectItem key={priority} value={priority}>
+                    {priority}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Input
-            type="number"
-            placeholder="Min Budget"
-            value={filters.budgetMin || ""}
-            onChange={(e) =>
-              setFilters({ ...filters, budgetMin: e.target.value || undefined })
-            }
-          />
+            <Input
+              type="number"
+              placeholder="Min Budget"
+              value={filters.budgetMin || ""}
+              onChange={(e) =>
+                setFilters({ ...filters, budgetMin: e.target.value || undefined })
+              }
+            />
 
-          <Input
-            type="number"
-            placeholder="Max Budget"
-            value={filters.budgetMax || ""}
-            onChange={(e) =>
-              setFilters({ ...filters, budgetMax: e.target.value || undefined })
-            }
-          />
+            <Input
+              type="number"
+              placeholder="Max Budget"
+              value={filters.budgetMax || ""}
+              onChange={(e) =>
+                setFilters({ ...filters, budgetMax: e.target.value || undefined })
+              }
+            />
           </div>
         )}
       </div>
@@ -322,14 +356,18 @@ export function LeadsContent() {
         <div className="text-center py-12 text-muted-foreground">
           No leads found. {hasActiveFilters && "Try adjusting your filters."}
         </div>
+      ) : viewMode === "board" ? (
+        <div className="flex-1 overflow-hidden">
+          <KanbanBoard leads={leads} onLeadUpdate={handleLeadUpdate} />
+        </div>
       ) : viewMode === "grid" ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto pr-2">
           {leads.map((lead) => (
             <LeadCard key={lead.id} lead={lead} showUrgency />
           ))}
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2 overflow-y-auto pr-2">
           {leads.map((lead) => (
             <LeadListItem key={lead.id} lead={lead} showUrgency />
           ))}
